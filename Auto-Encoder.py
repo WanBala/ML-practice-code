@@ -4,6 +4,11 @@
 Created on Fri Jan 26 11:05:53 2018
 
 @author: YU-TING
+
+可以使用
+但是沒有預期的效果  
+
+
 """
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
