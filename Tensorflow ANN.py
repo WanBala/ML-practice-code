@@ -3,6 +3,9 @@
 Created on Mon Jan 15 13:37:46 2018
 
 @author: YU-TING
+
+
+此為練習使用tensorflow製作ANN
 """
 
 import tensorflow as tf
