@@ -19,7 +19,7 @@ def initialize_parameters(Learning_size,input_feature):
     size=[input_feature]
     size.extend(Learning_size)
     parameters={}
-    with tf.variable_scope("Variable") as scope:
+    with tf.variable_scope("Variable",reuse=tf.AUTO_REUSE) as scope:
         scope.reuse_variables()
         for i in range(len(size)-1):
             parameters['W'+str(i+1)]=tf.get_variable('W'+str(i+1),
