@@ -6,6 +6,7 @@ Created on Mon Jan 15 13:37:46 2018
 
 
 此為練習使用tensorflow製作ANN
+可見其與我的ML_ANN非常類似
 """
 
 import tensorflow as tf
