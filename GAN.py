@@ -10,6 +10,9 @@ from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
 #生成對抗網路
 
+可以使用
+但是沒有預計的效果  輸入一亂數 輸出也為一亂數
+
 
 class GAN:
     
