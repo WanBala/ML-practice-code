@@ -65,6 +65,6 @@ y_train = mnist.train.labels
 x_test = mnist.test.images
 y_test = mnist.test.labels
 
-ANN_training(x_train.T,y_train.T,[50,50,10],200,0.1) #第三參數是以list形式傳入各層神經元數，第四參數為迭帶次數，第五參數為學習速率
+ANN_training(x_train.T,y_train.T,[50,50,10],200,0.1) #第三參數是以list形式傳入各層神經元數，第四參數為迭代次數，第五參數為學習速率
         
     
