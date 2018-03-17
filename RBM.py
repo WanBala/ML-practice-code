@@ -3,6 +3,8 @@
 """
 Created on Sun Feb  4 19:05:42 2018
 
+
+學著製作受限波茲曼機
 @author: YU-TING
 """
 
@@ -11,7 +13,7 @@ np_rng = np.random.RandomState(1234)
 np.random.seed(1)
 class RBM:
     
-    def __init__(self,n_input,n_hidden):
+    def __init__(self,n_input,n_hidden):                      #建立物件 使他包含所有需要的值
         self.n_input=n_input
         self.n_hidden=n_hidden
         self.W=np.random.uniform(-1,1,[n_hidden,n_input])*0.1
@@ -23,17 +25,17 @@ class RBM:
         return 1/(1+np.exp(-X))
     
     
-    def forward(self,X_input):
+    def forward(self,X_input):                                  #向隱藏層傳遞能量
         forward=np.dot(self.W,X_input)+self.b2
         sigmoid_forward=self.sigmoid(forward)
         return sigmoid_forward
     
-    def reconstruct(self,hidden_input):
+    def reconstruct(self,hidden_input):                          #向可視層傳遞能量
         back=np.dot(self.W.T,hidden_input)+self.b1
         reconstruct=self.sigmoid(back)
         return reconstruct
     
-    def training(self,Data_input,iterations,learning_rate):
+    def training(self,Data_input,iterations,learning_rate):            #以對比分歧算法訓練
         examples=Data_input.shape[1]
         
         for i in range(iterations):
