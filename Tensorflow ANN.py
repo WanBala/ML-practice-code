@@ -38,7 +38,7 @@ def Forward_propagation(input_Matrix,parameters):                        #向前
     
     return Z
 
-def compute_cost(Z,Y):                                               #Cost function
+def compute_cost(Z,Y):                                                #Cost function
     label_Y=tf.transpose(Y)
     predict=tf.transpose(Z)
     Cost=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predict,labels=label_Y))
