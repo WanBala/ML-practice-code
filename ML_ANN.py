@@ -10,7 +10,7 @@ import time
 #import multiprocessing
 import numpy as np
 import copy
-from tensorflow.examples.tutorials.mnist import input_data
+from tensorflow.examples.tutorials.mnist import input_data  #傳進訓練集
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 x_train = mnist.train.images
 y_train = mnist.train.labels
@@ -30,17 +30,17 @@ class ann:
         self.cache['A0']=self.data
         self.cost=[]
         self.acc=[]
-    def Weights_Set(self,L_layer):
+    def Weights_Set(self,L_layer):   #每層的神經元數設定，以list傳入，可任意長度
         self.choose=[]
         a=[self.features]
         a=a+L_layer
         for i in range(len(a)-1):
             self.grad["W"+str(i+1)]=np.random.randn(a[i+1],a[i])*np.sqrt(2./a[i])
             self.grad["b"+str(i+1)]=np.ones([a[i+1],1])
-            self.choose.append('selu')
+            self.choose.append('relu')
         self.choose[len(self.choose)-1]='sigmoid'
         
-    def Function_chooce(self,L_choose,function):
+    def Function_chooce(self,L_choose,function):  #替每一層選擇激勵函數、這個功能先被關起來了
         for i in L_choose:
             self.choose[i-1]=function
             
@@ -51,10 +51,10 @@ class ann:
         Input[Input<0]=0
         return Input   
                
-    def Linear_forward(self,W,b):
+    def Linear_forward(self,W,b):              #線性向前傳遞
         self.L_Layer=np.dot(W,self.L_Layer)+b    
             
-    def Act_forward(self,choose):
+    def Act_forward(self,choose):                  #激勵向前傳遞
         if(choose=='sigmoid'):
             self.L_Layer=self.Sigmoid(self.L_Layer)
         elif(choose=='selu'):
@@ -72,7 +72,7 @@ class ann:
         C=B+a*(np.exp(Input))*(Input<=0)-a
         return para*C
 
-    def Forward_propagation(self):
+    def Forward_propagation(self):              #組合向前傳遞
         self.L_Layer=self.data
         for i in range(len(self.choose)):
             self.Linear_forward(self.grad['W'+str(i+1)],self.grad['b'+str(i+1)])
@@ -80,11 +80,11 @@ class ann:
             self.Act_forward(self.choose[i])
             self.cache['A'+str(i+1)]=self.L_Layer
                        
-    def Cost(self):
+    def Cost(self):                                     #Cross-Entropy
         return sum(sum( (-self.y*np.log(self.L_Layer)-(1-self.y)*np.log(1-self.L_Layer))))/self.examples
     
     
-    def Act_backward(self,W_prev,dZ_prev,This_A,choose):
+    def Act_backward(self,W_prev,dZ_prev,This_A,choose):         #激勵函數層向後傳遞
         if(choose=='sigmoid'):
             dA=np.dot(W_prev.T,dZ_prev)
             dZ=dA*(self.Sigmoid(This_A)*(1-self.Sigmoid(This_A)))
@@ -106,24 +106,24 @@ class ann:
             dZ=dA*np.int64(This_A>0)
             return dZ    
    
-    def Linear_backward(self,This_dZ, A_next):
+    def Linear_backward(self,This_dZ, A_next):                   #線性向後傳遞
         dW=1./self.examples*np.dot(This_dZ,A_next.T)
         db=1./self.examples*np.sum(This_dZ, axis=1, keepdims=True)
         return dW,db
     
-    def Back_propagation(self,training_rate):
+    def Back_propagation(self,training_rate):                #組合向後傳遞
         dZ=self.cache['A'+str(len(self.choose))]-self.y
         for i in reversed(range(len(self.choose))):
             
             dW,db=self.Linear_backward( dZ, self.cache['A'+str(i)])
             self.grad['W'+str(i+1)]=self.grad['W'+str(i+1)]-training_rate*dW
             self.grad['b'+str(i+1)]=self.grad['b'+str(i+1)]-training_rate*db
-            dZ=self.Act_backward(self.grad['W'+str(i+1)]  , dZ, self.cache['A'+str(i)],'selu')          
+            dZ=self.Act_backward(self.grad['W'+str(i+1)]  , dZ, self.cache['A'+str(i)],'relu')          
             
            
             
                  
-    def training(self,iter_numbers,training_rate,show=False):
+    def training(self,iter_numbers,training_rate,show=False):       #將向前傳遞向後傳遞組合
         for i in range(iter_numbers):
             self.Forward_propagation()
             self.Back_propagation(training_rate)
@@ -133,7 +133,7 @@ class ann:
                 self.acc.append(self.test(x_test.T,y_test.T))
                 
     
-    def test(self,X_test,Y_test):
+    def test(self,X_test,Y_test):                           #測試
         self.L_Layer=X_test
         for i in range(len(self.choose)):
             self.Linear_forward(self.grad['W'+str(i+1)],self.grad['b'+str(i+1)])
