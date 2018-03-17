@@ -11,12 +11,12 @@ Created on Mon Jan 15 13:37:46 2018
 
 import tensorflow as tf
 
-def create_placeholder(input_feature,output_feature):
+def create_placeholder(input_feature,output_feature):              #設計傳入函數
     X=tf.placeholder(tf.float32,shape=[input_feature,None])
     Y=tf.placeholder(tf.float32,shape=[output_feature,None])
     return X,Y
 
-def initialize_parameters(Learning_size,input_feature):
+def initialize_parameters(Learning_size,input_feature):                #參數初始化 在Learning_size中以list傳入 可以在任意長度任意神經元數
     size=[input_feature]
     size.extend(Learning_size)
     parameters={}
@@ -30,7 +30,7 @@ def initialize_parameters(Learning_size,input_feature):
         
     return parameters
 
-def Forward_propagation(input_Matrix,parameters):
+def Forward_propagation(input_Matrix,parameters):                        #向前傳遞 使用relu
     Z=tf.add(tf.matmul(parameters['W1'],input_Matrix),parameters['b1'])
     for i in range(len(parameters)//2-1):
         Z=tf.nn.relu(Z)
@@ -38,7 +38,7 @@ def Forward_propagation(input_Matrix,parameters):
     
     return Z
 
-def compute_cost(Z,Y):
+def compute_cost(Z,Y):                                               #Cost function
     label_Y=tf.transpose(Y)
     predict=tf.transpose(Z)
     Cost=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predict,labels=label_Y))
