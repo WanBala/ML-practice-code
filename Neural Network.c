@@ -350,6 +350,7 @@ float *b_Total(float *Array, int D1, int D2){
 	return space;
 }//創新變數
 
+給定矩陣和其維度，會將scale縮小
 void Mat_Scale(float *Array,int D1, int D2){
 	for (int i = 0; i<D1*D2; i++)
 	{
@@ -386,42 +387,41 @@ int main(){
 	float difference=Square_Err(A2_1x10,Ouput1x10,output_n,input_examples);
 	printf("Square_Error is %f\n",difference);
 
-	float *dCost=dSquare_Err(A2_1x10,Ouput1x10,output_n,input_examples);    //直接將Cost微分形成dA是有原因的 但是我懶得解釋
+	float *dCost=dSquare_Err(A2_1x10,Ouput1x10,output_n,input_examples);    //直接將Cost微分視為dA
 
-	float *Sig=dSigmoid(A2_1x10,output_n,input_examples);
+	float *Sig=dSigmoid(A2_1x10,output_n,input_examples);			//對Sigmoid微分
 
-	float  *dZ2_1x10=Mat_Mul(dCost,Sig,output_n,input_examples,output_n,input_examples);
-
-
-	float *TA1_10x10=Mat_Tran(A1_10x10,10,10);
+	float  *dZ2_1x10=Mat_Mul(dCost,Sig,output_n,input_examples,output_n,input_examples);  //求dZ2
 
 
+	float *TA1_10x10=Mat_Tran(A1_10x10,10,10);     //取得A1的Transpose
 
 
-	float *dW2_1x10=Mat_Dot(dZ2_1x10,TA1_10x10,1,10,10,10);
-	Mat_Scale(dW2_1x10,1,10);
-//記得這邊要除以十
+
+
+	float *dW2_1x10=Mat_Dot(dZ2_1x10,TA1_10x10,1,10,10,10);   //計算出dW1
+	Mat_Scale(dW2_1x10,1,10);				//將dW縮放，因為在計算dW時沒有除以總樣本數，因此在這邊除
+
 
 	printf("-------------------\n");
-	float *db2_1x1=b_Total(dZ2_1x10,1,10);
+	float *db2_1x1=b_Total(dZ2_1x10,1,10);               //計算db2
 
 
-	float *W2_tran_10x1=Mat_Tran(W2_1x10,1,10);
-	float *dA1=Mat_Dot(W2_tran_10x1,dZ2_1x10,10,1,1,10);
-	float *rel=dRelu(A1_10x10,10,10);
+	float *W2_tran_10x1=Mat_Tran(W2_1x10,1,10);	       //算W2轉置
+	float *dA1=Mat_Dot(W2_tran_10x1,dZ2_1x10,10,1,1,10);	//算dA1
+	float *rel=dRelu(A1_10x10,10,10);			//算Relu微分
 
-	float *dZ1_10x10=Mat_Mul(dA1,rel,10,10,10,10);
-	float *Tinput_10x1=Mat_Tran(Input1x10,1,10);
-
-//	float *Avg_TA0=Mat_Mul(Tinput_10x1,&To1,10,1,1,1);
-//記得要除以10
-
-	float *dW1_10x1=Mat_Dot(dZ1_10x10,Tinput_10x1,10,10,10,1);
-	Mat_Scale(dW1_10x1,10,1);
-	float *db1_10x1=b_Total(dZ1_10x10,10,10);
+	float *dZ1_10x10=Mat_Mul(dA1,rel,10,10,10,10);		//算dZ1
+	float *Tinput_10x1=Mat_Tran(Input1x10,1,10);		//得Input的Transpose
 
 
-	Mat_Minus(W2_1x10,dW2_1x10, 1,10,1,10,0.1);
+
+	float *dW1_10x1=Mat_Dot(dZ1_10x10,Tinput_10x1,10,10,10,1);   //計算dW2
+	Mat_Scale(dW1_10x1,10,1);					//將dW 縮放 因為計算dW時沒有除樣本數
+	float *db1_10x1=b_Total(dZ1_10x10,10,10);			//求db1
+
+//以下為更新參數和刪除一些暫存的空間
+	Mat_Minus(W2_1x10,dW2_1x10, 1,10,1,10,0.1);		
 	Mat_Minus(b2_1x1,db2_1x1, 1,1,1,1,0.1);
 	Mat_Minus(W1_10x1,dW1_10x1,1,10,1,10,0.1);
 	Mat_Minus(b1_10x1,db1_10x1,10,1,10,1,0.1);
