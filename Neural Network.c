@@ -354,7 +354,7 @@ float *b_Total(float *Array, int D1, int D2){
 	return space;
 }//創新變數
 
-給定矩陣和其維度，會將scale縮小
+//給定矩陣和其維度，會將scale縮小
 void Mat_Scale(float *Array,int D1, int D2){
 	for (int i = 0; i<D1*D2; i++)
 	{
