@@ -4,11 +4,15 @@
 #include <math.h>
 #include <time.h>
 
-#define input_n 1
-#define input_examples 10  
-#define hidden_n 10
-#define output_n 1
-#define iterations 200
+#define input_n 1				//輸入的特徵數
+#define input_examples 10  			//輸入的樣本數
+#define hidden_n 10				//隱藏層個數
+#define output_n 1				//輸出的個數
+#define iterations 200				//總迭代次數
+#define learning_rate 0.1			//訓練速率
+//注意，樣本在矩陣中一律放直的!
+
+
 //創立一個矩陣，維度為D1、D2，若Mode 為0，以initial的值初始化，若Mode為非零為隨機初始化
 float *Mat_Create(int D1,int D2, float Mod,int initial){
 	float *Array=malloc(D1*D2*sizeof(float));
@@ -394,37 +398,37 @@ int main(){
 	float  *dZ2_1x10=Mat_Mul(dCost,Sig,output_n,input_examples,output_n,input_examples);  //求dZ2
 
 
-	float *TA1_10x10=Mat_Tran(A1_10x10,10,10);     //取得A1的Transpose
+	float *TA1_10x10=Mat_Tran(A1_10x10,hidden_n,input_examples);     //取得A1的Transpose
 
 
 
 
-	float *dW2_1x10=Mat_Dot(dZ2_1x10,TA1_10x10,1,10,10,10);   //計算出dW1
-	Mat_Scale(dW2_1x10,1,10);				//將dW縮放，因為在計算dW時沒有除以總樣本數，因此在這邊除
+	float *dW2_1x10=Mat_Dot(dZ2_1x10,TA1_10x10,output_n,input_examples,input_examples,hidden_n);   //計算出dW1
+	Mat_Scale(dW2_1x10,output_n,hidden_n);				//將dW縮放，因為在計算dW時沒有除以總樣本數，因此在這邊除
 
 
 	printf("-------------------\n");
-	float *db2_1x1=b_Total(dZ2_1x10,1,10);               //計算db2
+	float *db2_1x1=b_Total(dZ2_1x10,output_n,1);               //計算db2
 
 
-	float *W2_tran_10x1=Mat_Tran(W2_1x10,1,10);	       //算W2轉置
-	float *dA1=Mat_Dot(W2_tran_10x1,dZ2_1x10,10,1,1,10);	//算dA1
-	float *rel=dRelu(A1_10x10,10,10);			//算Relu微分
+	float *W2_tran_10x1=Mat_Tran(W2_1x10,output_n,hidden_n);	       //算W2轉置
+	float *dA1=Mat_Dot(W2_tran_10x1,dZ2_1x10,hidden_n,output_n,output_n,input_examples);	//算dA1
+	float *rel=dRelu(A1_10x10,hidden_n,input_examples);			//算Relu微分
 
-	float *dZ1_10x10=Mat_Mul(dA1,rel,10,10,10,10);		//算dZ1
-	float *Tinput_10x1=Mat_Tran(Input1x10,1,10);		//得Input的Transpose
+	float *dZ1_10x10=Mat_Mul(dA1,rel,hidden_n,input_examples,hidden_n,input_examples);		//算dZ1
+	float *Tinput_10x1=Mat_Tran(Input1x10,input_n,input_examples);		//得Input的Transpose
 
 
 
-	float *dW1_10x1=Mat_Dot(dZ1_10x10,Tinput_10x1,10,10,10,1);   //計算dW2
-	Mat_Scale(dW1_10x1,10,1);					//將dW 縮放 因為計算dW時沒有除樣本數
-	float *db1_10x1=b_Total(dZ1_10x10,10,10);			//求db1
+	float *dW1_10x1=Mat_Dot(dZ1_10x10,Tinput_10x1,hidden_n,input_examples,input_examples,input_n);  //計算dW2
+	Mat_Scale(dW1_10x1,hidden_n,input_n);					//將dW 縮放 因為計算dW時沒有除樣本數
+	float *db1_10x1=b_Total(dZ1_10x10,hidden_n,input_examples);			//求db1
 
 //以下為更新參數和刪除一些暫存的空間
-	Mat_Minus(W2_1x10,dW2_1x10, 1,10,1,10,0.1);		
-	Mat_Minus(b2_1x1,db2_1x1, 1,1,1,1,0.1);
-	Mat_Minus(W1_10x1,dW1_10x1,1,10,1,10,0.1);
-	Mat_Minus(b1_10x1,db1_10x1,10,1,10,1,0.1);
+	Mat_Minus(W2_1x10,dW2_1x10, output_n,hidden_n,output_n,hidden_n,learning_rate);		
+	Mat_Minus(b2_1x1,db2_1x1, output_n,1,output_n,1,learning_rate);
+	Mat_Minus(W1_10x1,dW1_10x1,hidden_n,input_n,hidden_n,input_n,learning_rate);
+	Mat_Minus(b1_10x1,db1_10x1,hidden_n,1,hidden_n,1,learning_rate);
 	free(dCost);free(Sig);free(dZ2_1x10);free(dZ1_10x10);free(TA1_10x10);free(dW1_10x1);free(dW2_1x10);
 	free(rel);free(db1_10x1);free(db2_1x1);free(W2_tran_10x1);free(Tinput_10x1);
 	}
