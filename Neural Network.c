@@ -332,6 +332,7 @@ float *dSquare_Err(float *Array, float* True_label,int D1, int D2){
 		*ptr=*Array*(*Array-*True_label);
 		ptr++;
 		True_label++;
+		Array++;
 	}
 	return dSq;
 }
