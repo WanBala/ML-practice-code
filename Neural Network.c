@@ -4,14 +4,15 @@
 #include <math.h>
 #include <time.h>
 
-#define input_n 1				//輸入的特徵數
-#define input_examples 10  			//輸入的樣本數
-#define hidden_n 10				//隱藏層個數
-#define output_n 1				//輸出的個數
-#define iterations 200				//總迭代次數
-#define learning_rate 0.1			//訓練速率
-//注意，樣本在矩陣中一律放直的!
 
+#define input_n 2
+#define input_examples 4 
+#define hidden_n 20
+#define output_n 1
+#define learning_rate 0.1
+#define iterations 10000
+
+//注意，樣本在矩陣中一律放直的! Xinput的縱座標是features 橫坐標是樣本
 
 //創立一個矩陣，維度為D1、D2，若Mode 為0，以initial的值初始化，若Mode為非零為隨機初始化
 float *Mat_Create(int D1,int D2, float Mod,int initial){
@@ -355,7 +356,6 @@ float *b_Total(float *Array, int D1, int D2){
 	return space;
 }//創新變數
 
-//給定矩陣和其維度，會將scale縮小
 void Mat_Scale(float *Array,int D1, int D2){
 	for (int i = 0; i<D1*D2; i++)
 	{
@@ -368,12 +368,28 @@ void Mat_Scale(float *Array,int D1, int D2){
 int main(){
 	srand(time(NULL));
 //定義Input以及全連結函數W	
-	float *Input1x10=Mat_Create(input_n,input_examples,1,0);
+	//建構Input，  將印出2x4的矩陣   都是AND Gate的應有輸入
+	float *Input1x10=Mat_Create(input_n,input_examples,0,1);
+	*Mat_Idx(Input1x10,input_n,input_examples,1,1)=1.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,1,2)=1.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,1,3)=0.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,1,4)=0.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,2,1)=1.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,2,2)=0.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,2,3)=1.0;
+	*Mat_Idx(Input1x10,input_n,input_examples,2,4)=0.0;
+	printf("Input:\n");
+	Mat_Show(Input1x10,input_n,input_examples);		//印出Input  
+	printf("--------------------\n");
 	float *W1_10x1=Mat_Create(hidden_n,input_n,1,1);      //注意第三個位數是模式位、0為以第四參數為初始值、1為隨機初始化
 	float *b1_10x1=Mat_Create(hidden_n,1,0,0);
 	float *W2_1x10=Mat_Create(output_n,hidden_n,1,1);
 	float *b2_1x1=Mat_Create(output_n,1,0,0);
-	float *Ouput1x10=Mat_Create(output_n,input_examples,1,0);
+	//定義真實答案
+	float *Ouput1x10=Mat_Create(output_n,input_examples,0,0);
+	*Mat_Idx(Ouput1x10,output_n,input_examples,1,1)=1.0;
+	printf("True_label:\n");
+	Mat_Show(Ouput1x10,output_n,input_examples);     //印出真實答案
 //定義向前傳遞
 	
 	for (int i = 0; i <iterations; ++i)
@@ -390,39 +406,38 @@ int main(){
 		/* code */
 	
 	float difference=Square_Err(A2_1x10,Ouput1x10,output_n,input_examples);
-	printf("Square_Error is %f\n",difference);
+	printf("The %d time training.  Square_Error is %f\n",i+1,difference);
 
-	float *dCost=dSquare_Err(A2_1x10,Ouput1x10,output_n,input_examples);    //直接將Cost微分視為dA
+	float *dCost=dSquare_Err(A2_1x10,Ouput1x10,output_n,input_examples);    //直接將Cost微分視為dA(因為從A3轉移到Cost時沒有W傳遞)
 
-	float *Sig=dSigmoid(A2_1x10,output_n,input_examples);			//對Sigmoid微分
+	float *Sig=dSigmoid(A2_1x10,output_n,input_examples);				//對Sigmoid微分
 
-	float  *dZ2_1x10=Mat_Mul(dCost,Sig,output_n,input_examples,output_n,input_examples);  //求dZ2
-
-
-	float *TA1_10x10=Mat_Tran(A1_10x10,hidden_n,input_examples);     //取得A1的Transpose
+	float  *dZ2_1x10=Mat_Mul(dCost,Sig,output_n,input_examples,output_n,input_examples);	//求dZ2
 
 
+	float *TA1_10x10=Mat_Tran(A1_10x10,hidden_n,input_examples);			 //取得A1的Transpose
 
 
-	float *dW2_1x10=Mat_Dot(dZ2_1x10,TA1_10x10,output_n,input_examples,input_examples,hidden_n);   //計算出dW1
-	Mat_Scale(dW2_1x10,output_n,hidden_n);				//將dW縮放，因為在計算dW時沒有除以總樣本數，因此在這邊除
+
+
+	float *dW2_1x10=Mat_Dot(dZ2_1x10,TA1_10x10,output_n,input_examples,input_examples,hidden_n);	//計算出dW1
+	Mat_Scale(dW2_1x10,output_n,hidden_n);								//將dW縮放，因為在計算dW時沒有除以總樣本數，因此在這邊除
 
 
 	printf("-------------------\n");
-	float *db2_1x1=b_Total(dZ2_1x10,output_n,1);               //計算db2
+	float *db2_1x1=b_Total(dZ2_1x10,output_n,1);							//計算db2
 
 
-	float *W2_tran_10x1=Mat_Tran(W2_1x10,output_n,hidden_n);	       //算W2轉置
-	float *dA1=Mat_Dot(W2_tran_10x1,dZ2_1x10,hidden_n,output_n,output_n,input_examples);	//算dA1
-	float *rel=dRelu(A1_10x10,hidden_n,input_examples);			//算Relu微分
+	float *W2_tran_10x1=Mat_Tran(W2_1x10,output_n,hidden_n);				//算W2轉置
+	float *dA1=Mat_Dot(W2_tran_10x1,dZ2_1x10,hidden_n,output_n,output_n,input_examples);		//算dA1
+	float *rel=dRelu(A1_10x10,hidden_n,input_examples);					//算Relu微分
 
 	float *dZ1_10x10=Mat_Mul(dA1,rel,hidden_n,input_examples,hidden_n,input_examples);		//算dZ1
 	float *Tinput_10x1=Mat_Tran(Input1x10,input_n,input_examples);		//得Input的Transpose
 
 
-
-	float *dW1_10x1=Mat_Dot(dZ1_10x10,Tinput_10x1,hidden_n,input_examples,input_examples,input_n);  //計算dW2
-	Mat_Scale(dW1_10x1,hidden_n,input_n);					//將dW 縮放 因為計算dW時沒有除樣本數
+	float *dW1_10x1=Mat_Dot(dZ1_10x10,Tinput_10x1,hidden_n,input_examples,input_examples,input_n);	//計算dW2
+	Mat_Scale(dW1_10x1,hidden_n,input_n);								//將dW 縮放 因為計算dW時沒有除樣本數
 	float *db1_10x1=b_Total(dZ1_10x10,hidden_n,input_examples);			//求db1
 
 //以下為更新參數和刪除一些暫存的空間
@@ -432,7 +447,21 @@ int main(){
 	Mat_Minus(b1_10x1,db1_10x1,hidden_n,1,hidden_n,1,learning_rate);
 	free(dCost);free(Sig);free(dZ2_1x10);free(dZ1_10x10);free(TA1_10x10);free(dW1_10x1);free(dW2_1x10);
 	free(rel);free(db1_10x1);free(db2_1x1);free(W2_tran_10x1);free(Tinput_10x1);
+	if (i==(iterations-1)){
+		printf("Training Finished\n");
+		printf("For the input[1,1],  AND operation predicted it having  %f %%  confidence that would be 1, so it's %f\n",100**A2_1x10,round(*A2_1x10));
+		printf("For the input[1,0],  AND operation predicted it having  %f %%  confidence that would be 1, so it's %f\n",100**(A2_1x10+1),round(*(A2_1x10+1)));
+		printf("For the input[0,1],  AND operation predicted it having  %f %%  confidence that would be 1, so it's %f\n",100**(A2_1x10+2),round(*(A2_1x10+2)));
+		printf("For the input[0,0],  AND operation predicted it having  %f %%  confidence that would be 1, so it's %f\n",100**(A2_1x10+3),round(*(A2_1x10+3)));
+//		A2_1x10,output_n,input_examples);
+		system("PAUSE");
 	}
+	
 
+
+	}
+	
+
+	
 }
 
